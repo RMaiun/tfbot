@@ -21,9 +21,8 @@ lazy val app = (project in file(".")).
       "-encoding", "UTF-8",
       "-language:higherKinds",
       "-language:postfixOps",
-      "-feature",
-      "-Xfatal-warnings",
-      "-language:implicitConversions"
+//      "-feature",
+      "-Xfatal-warnings"
     ),
     libraryDependencies ++= Seq(
       "com.bot4s" %% "telegram-core" % "4.4.0-RC2",

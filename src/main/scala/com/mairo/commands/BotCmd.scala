@@ -1,4 +1,4 @@
-package com.mairo.command
+package com.mairo.commands
 
 trait BotCmd
 trait InputCmd extends BotCmd
