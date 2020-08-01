@@ -1,4 +1,4 @@
-package com.mairo.services
+package com.mairo.spi
 
 import cats.Monad
 import cats.data.EitherT
@@ -8,7 +8,7 @@ import com.typesafe.scalalogging.LazyLogging
 object FlowControlService extends LazyLogging {
 
   def invoke[F[_] : Monad, A](msg: Message, args: Seq[String] = Seq())
-                             (serviceProducer: ServiceProducer[F, A]): F[String] = {
+                             (serviceProducer: ServiceProvider[F, A]): F[String] = {
 
     val executionResult = for {
       _ <- EitherT(serviceProducer.validator.validate(args))

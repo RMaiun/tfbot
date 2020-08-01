@@ -3,32 +3,48 @@ package com.mairo
 import cats.Monad
 import cats.effect.{Async, ContextShift, Timer}
 import cats.implicits._
-import com.bot4s.telegram.api.declarative.{Commands, RegexCommands}
-import com.bot4s.telegram.cats.Polling
-import com.mairo.services.{CataClient, FlowControlService, ServiceProducer}
+import com.mairo.ParentBot._
+import com.mairo.bot.{SelfCommand, StartCommand}
+import com.mairo.spi.{FlowControlService, ProviderSet}
 import com.typesafe.scalalogging.Logger
 
-/**
-  * Showcases different ways to declare commands (Commands + RegexCommands).
-  *
-  * Note that non-ASCII commands are not clickable.
-  *
-  * @param token Bot's token.
-  */
-class CommandsBot[F[_] : Async : Timer : ContextShift : Monad](token: String)(implicit cc: CataClient[F])
-  extends ExampleBot[F](token)
-    with Polling[F]
-    with Commands[F]
-    with RegexCommands[F] {
+class CommandsBot[F[_] : Async : Timer : ContextShift : Monad](token: String, botVersion: String)(implicit ps: ProviderSet[F])
+  extends ParentBot[F](token)
+    with StartCommand
+    with SelfCommand {
   val log = Logger(getClass)
 
+  onCommand(START_CMD) { implicit msg =>
+    response(startCmdText(botVersion))
+  }
 
-  // '/' prefix is optional
-  onCommand("hola") { implicit msg =>
+  onCommand(SELF_CMD) { implicit msg =>
+    response(selfCmdText)
+  }
+
+  onCommand(PLAYERS_CMD) { implicit msg =>
     for {
-      bla <- FlowControlService.invoke(msg)(ServiceProducer.producer(cc))
-      z <- reply(bla).void
-    } yield z
+      players <- FlowControlService.invoke(msg)(ps.playersCmdSP)
+      result <- response(players)
+    } yield result
+  }
+
+  onCommand(STATS_CMD) { implicit msg =>
+    withArgs { args =>
+      for {
+        stats <- FlowControlService.invoke(msg, args)(ps.statsCmdSP)
+        result <- response(stats)
+      } yield result
+    }
+  }
+
+  onCommand(LAST_CMD) { implicit msg =>
+    withArgs { args =>
+      for {
+        stats <- FlowControlService.invoke(msg, args)(ps.lastCmdSP)
+        result <- response(stats)
+      } yield result
+    }
   }
 
 }
