@@ -3,7 +3,8 @@ package com.mairo.spi
 import cats.Monad
 import cats.effect.ContextShift
 import com.bot4s.telegram.models.Message
-import com.mairo.dtos.CataClientDtos.{FoundLastRounds, Players, ShortInfoStats}
+import com.mairo.dtos.CataClientIntputDtos.AddRoundDto
+import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, ShortInfoStats, StoredId}
 import com.mairo.services.{CataClient, QuarterCalculator}
 import com.mairo.utils.Flow.Flow
 
@@ -32,6 +33,13 @@ object CmdProcessor {
         case Seq(s, q) => (s, Some(q.toInt))
       }
       cc.fetchLastRounds(season, qty)
+    }
+  }
+
+  case class AddRoundCmdProcessor[F[_] : Monad : ContextShift, A](cc: CataClient[F]) extends CmdProcessor[F, StoredId] {
+    override def process(msg: Message, args: Seq[String]): Flow[F, StoredId] = {
+      val dto = AddRoundDto(args.head, args(1), args(2), args(3), args.size == 5, msg.from.fold("0")(_.id.toString))
+      cc.addRound(dto)
     }
   }
 

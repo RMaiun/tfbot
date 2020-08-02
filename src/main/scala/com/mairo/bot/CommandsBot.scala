@@ -11,14 +11,20 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad](token: String, bo
   extends ParentBot[F](token)
     with StartCommand
     with SelfCommand {
-  val log = Logger(getClass)
+  implicit val log: Logger = Logger(getClass)
 
   onCommand(START_CMD) { implicit msg =>
-    response(startCmdText(botVersion))
+    for {
+      _ <- logCmdInvocation(START_CMD)
+      res <- response(startCmdText(botVersion))
+    } yield res
   }
 
   onCommand(SELF_CMD) { implicit msg =>
-    response(selfCmdText)
+    for {
+      _ <- logCmdInvocation(SELF_CMD)
+      res <- response(selfCmdText)
+    } yield res
   }
 
   onCommand(PLAYERS_CMD) { implicit msg =>
@@ -31,6 +37,7 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad](token: String, bo
   onCommand(STATS_CMD) { implicit msg =>
     withArgs { args =>
       for {
+        _ <- logCmdInvocation(STATS_CMD)
         stats <- FlowControlService.invoke(msg, args)(ps.statsCmdSP)
         result <- response(stats)
       } yield result
@@ -40,7 +47,18 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad](token: String, bo
   onCommand(LAST_CMD) { implicit msg =>
     withArgs { args =>
       for {
+        _ <- logCmdInvocation(LAST_CMD)
         stats <- FlowControlService.invoke(msg, args)(ps.lastCmdSP)
+        result <- response(stats)
+      } yield result
+    }
+  }
+
+  onCommand(ADD_ROUND_CMD) { implicit msg =>
+    withArgs { args =>
+      for {
+        _ <- logCmdInvocation(ADD_ROUND_CMD)
+        stats <- FlowControlService.invoke(msg, args)(ps.addRoundCmdSP)
         result <- response(stats)
       } yield result
     }

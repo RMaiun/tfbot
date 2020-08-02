@@ -1,7 +1,7 @@
 package com.mairo.spi
 
 import cats.Monad
-import com.mairo.dtos.CataClientDtos.{FoundLastRounds, Players, Round, ShortInfoStats}
+import com.mairo.dtos.CataClientOutputDtos._
 import com.mairo.services.DateFormatter
 import com.mairo.utils.Flow
 import com.mairo.utils.Flow.Flow
@@ -80,6 +80,16 @@ object MessageFormatter {
            |""".stripMargin
       ).mkString(line)
       s"``` $formedBlocks```"
+    }
+  }
+
+  case class AddRoundCmdFormatter[F[_] : Monad]() extends MessageFormatter[F, StoredId] {
+    override def format(data: StoredId): Flow[F, String] = {
+      val msg =
+        s"""```
+           |New round was stored with id ${data.id}```
+        """.stripMargin
+      Flow.right(msg)
     }
   }
 

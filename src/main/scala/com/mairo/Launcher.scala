@@ -15,7 +15,8 @@ object Launcher extends IOApp with LazyLogging with AppConfig {
   implicit val serviceProviders: ProviderSet[IO] = spi.ProviderSet(
     ServiceProvider.playersCmdServiceProvider(cataClient),
     ServiceProvider.statsCmdServiceProvider(cataClient),
-    ServiceProvider.lastCmdServiceProvider(cataClient))
+    ServiceProvider.lastCmdServiceProvider(cataClient),
+    ServiceProvider.addRoundCmdServiceProvider(cataClient))
 
   logger.info("Found bot version = {}", botVersion)
   logger.info("Found bot token = {}", botToken)

@@ -2,7 +2,7 @@ package com.mairo.dtos
 
 import java.time.LocalDateTime
 
-object CataClientDtos {
+object CataClientOutputDtos {
 
   case class Player(id: Long, surname: String)
 
@@ -28,5 +28,9 @@ object CataClientDtos {
                    shutout: Boolean)
 
   case class FoundLastRounds(rounds: List[Round])
+
+  case class StoredId(id:Long)
+
+  case class ExpectedException(reasons: List[String])
 
 }

@@ -2,7 +2,7 @@ package com.mairo.spi
 
 import cats.Monad
 import cats.effect.ContextShift
-import com.mairo.dtos.CataClientDtos.{FoundLastRounds, Players, ShortInfoStats}
+import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, ShortInfoStats, StoredId}
 import com.mairo.services.CataClient
 
 case class ServiceProvider[F[_], A](validator: ArgValidator[F],
@@ -28,4 +28,10 @@ object ServiceProvider {
       ArgValidator.LastCmdValidator(),
       CmdProcessor.LastCmdProcessor(cc),
       MessageFormatter.LastCmdFormatter())
+
+  def addRoundCmdServiceProvider[F[_] : Monad : ContextShift](cc: CataClient[F]): ServiceProvider[F, StoredId] =
+    new ServiceProvider[F, StoredId](
+      ArgValidator.AddRoundCmdValidator(),
+      CmdProcessor.AddRoundCmdProcessor(cc),
+      MessageFormatter.AddRoundCmdFormatter())
 }

@@ -3,8 +3,10 @@ package com.mairo.utils
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.mairo.dtos.CataClientDtos._
+import com.mairo.dtos.CataClientIntputDtos.AddRoundDto
+import com.mairo.dtos.CataClientOutputDtos._
 import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, RootJsonFormat}
+import spray.json._
 
 trait CataClientSprayCodecs extends DefaultJsonProtocol {
   implicit val localDateTimeFormat: JsonFormat[LocalDateTime] = new JsonFormat[LocalDateTime] {
@@ -18,6 +20,9 @@ trait CataClientSprayCodecs extends DefaultJsonProtocol {
     }
   }
 
+  implicit val expectedExceptionFormat: RootJsonFormat[ExpectedException] = jsonFormat1(ExpectedException)
+
+
   implicit val playerFormat: RootJsonFormat[Player] = jsonFormat2(Player)
   implicit val playersFormat: RootJsonFormat[Players] = jsonFormat1(Players)
 
@@ -27,5 +32,8 @@ trait CataClientSprayCodecs extends DefaultJsonProtocol {
 
   implicit val roundFormat: RootJsonFormat[Round] = jsonFormat7(Round)
   implicit val foundLastRoundsFormat: RootJsonFormat[FoundLastRounds] = jsonFormat1(FoundLastRounds)
+
+  implicit val addRoundFormat: RootJsonFormat[AddRoundDto] = jsonFormat6(AddRoundDto)
+  implicit val storedIdFormat: RootJsonFormat[StoredId] = jsonFormat1(StoredId)
 
 }

@@ -10,6 +10,7 @@ import com.bot4s.telegram.methods.ParseMode.ParseMode
 import com.bot4s.telegram.models.{KeyboardButton, Message, ReplyKeyboardMarkup}
 import com.mairo.bot.ParentBot._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import com.typesafe.scalalogging.Logger
 
 object ParentBot {
   val START_CMD = "/start"
@@ -17,7 +18,7 @@ object ParentBot {
   val PLAYERS_CMD = "/players"
   val LAST_CMD = "/last"
   val STATS_CMD = "/stats"
-  val ADD_CMD = "/add"
+  val ADD_ROUND_CMD = "/add"
 
   val notAvailable = "n/a"
 
@@ -54,5 +55,9 @@ abstract class ParentBot[F[_] : Async : ContextShift : Monad](val token: String)
       disableNotification,
       replyToMessageId,
       defaultMarkup()).void
+  }
+
+  def logCmdInvocation(cmd:String)(implicit logger: Logger, msg:Message): F[Unit] ={
+    Async[F].delay(logger.info("{} was invoked by {}", cmd, msg.from.fold("incognito")(_.firstName)))
   }
 }

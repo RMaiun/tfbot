@@ -3,7 +3,9 @@ package com.mairo.services
 import cats.MonadError
 import cats.effect.ContextShift
 import cats.implicits._
-import com.mairo.dtos.CataClientDtos.{FoundLastRounds, Players, ShortInfoStats}
+import com.mairo.dtos.CataClientIntputDtos.AddRoundDto
+import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, ShortInfoStats, StoredId}
+import com.mairo.exceptions.BotException.{CataclysmExpectedException, CataclysmUnexpectedException}
 import com.mairo.utils.Flow.Flow
 import com.mairo.utils.{AppConfig, CataClientSprayCodecs}
 import com.softwaremill.sttp._
@@ -20,7 +22,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
       .response(asJson[Players])
     val response: Flow[F, Players] = be.send(request)
       .map(_.body)
-      .map(_.left.map(str => new RuntimeException(str)))
+      .map(_.left.map(str => CataclysmExpectedException(str)))
     F.handleError(response)(err => err.asLeft[Players])
   }
 
@@ -43,7 +45,19 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
       .response(asJson[FoundLastRounds])
     val response: Flow[F, FoundLastRounds] = be.send(request)
       .map(_.body)
-      .map(_.left.map(str => new RuntimeException(str)))
-    F.handleError(response)(err => err.asLeft[FoundLastRounds])
+      .map(_.left.map(str => CataclysmExpectedException(str)))
+    F.handleError(response)(err => CataclysmUnexpectedException(err).asLeft[FoundLastRounds])
+  }
+
+  def addRound(dto: AddRoundDto): Flow[F, StoredId] = {
+    val path = s"$cataclysmRoot/rounds/add"
+    logger.info("Sending request to cataclysm {}", path)
+    val request = sttp.post(uri"$path")
+      .body(dto)
+      .response(asJson[StoredId])
+    val response: Flow[F, StoredId] = be.send(request)
+      .map(_.body)
+      .map(_.left.map(str => CataclysmExpectedException(str)))
+    F.handleError(response)(err => CataclysmUnexpectedException(err).asLeft[StoredId])
   }
 }

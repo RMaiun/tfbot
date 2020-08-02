@@ -19,7 +19,7 @@ trait StartCommand {
        |якщо x відсутній, то now()
        |приклад: S1|2019, S4|2020
        |--------------------------------------
-       |$ADD_CMD [surname1/surname2 surname3/surname4] - додати гру
+       |$ADD_ROUND_CMD [surname1/surname2 surname3/surname4] - додати гру
        |(тільки для адмінів)
        |--------------------------------------
        |           version:$version

@@ -2,13 +2,16 @@ package com.mairo.spi
 
 import cats.Monad
 import cats.data.EitherT
+import cats.effect.Async
+import cats.implicits._
 import com.bot4s.telegram.models.Message
+import com.mairo.exceptions.BotException.{CataclysmExpectedException, CataclysmUnexpectedException}
 import com.typesafe.scalalogging.LazyLogging
 
 object FlowControlService extends LazyLogging {
 
-  def invoke[F[_] : Monad, A](msg: Message, args: Seq[String] = Seq())
-                             (serviceProducer: ServiceProvider[F, A]): F[String] = {
+  def invoke[F[_] : Monad : Async, A](msg: Message, args: Seq[String] = Seq())
+                                     (serviceProducer: ServiceProvider[F, A]): F[String] = {
 
     val executionResult = for {
       _ <- EitherT(serviceProducer.validator.validate(args))
@@ -17,13 +20,21 @@ object FlowControlService extends LazyLogging {
     } yield result
 
     Monad[F].flatMap(executionResult.value) {
-      case Left(err) => Monad[F].pure(formatError(err))
-      case Right(v) => Monad[F].pure(v)
+      case Left(err) => formatError(err)
+      case Right(v)
+      => Monad[F].pure(v)
     }
   }
 
-  private def formatError(e: Throwable): String = {
-    e.printStackTrace()
-    s"*ERROR*: ${e.getMessage}"
+  private def formatError[F[_] : Async : Monad](err: Throwable): F[String] = {
+    val str = err match {
+      case e: CataclysmExpectedException => s"*ERROR*: ${e.getMessage}"
+      case e: CataclysmUnexpectedException => s"*ERROR*: ${e.getMessage}"
+      case _ => s"*ERROR*: ${err.getMessage}"
+    }
+    for {
+      _ <- Async[F].delay(err.printStackTrace())
+      error <- Monad[F].pure(str)
+    } yield error
   }
 }
