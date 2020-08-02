@@ -16,8 +16,8 @@ object CataClientDtos {
                             playersRating: List[PlayerStats],
                             gamesPlayed: Int,
                             daysToSeasonEnd: Int,
-                            bestStreak: Streak,
-                            worstStreak: Streak)
+                            bestStreak: Option[Streak],
+                            worstStreak: Option[Streak])
 
   case class Round(winner1: String,
                    winner2: String,

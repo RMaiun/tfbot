@@ -1,6 +1,7 @@
 package com.mairo
 
 import cats.effect.{ExitCode, IO, IOApp}
+import com.mairo.bot.CommandsBot
 import com.mairo.services.CataClient
 import com.mairo.spi.{ProviderSet, ServiceProvider}
 import com.mairo.utils.{AppConfig, IoSttpBackend}
@@ -18,6 +19,7 @@ object Launcher extends IOApp with LazyLogging with AppConfig {
 
   logger.info("Found bot version = {}", botVersion)
   logger.info("Found bot token = {}", botToken)
+  logger.info("Found cataclysm.root = {}", cataclysmRoot)
 
   def run(args: List[String]): IO[ExitCode] = {
     logger.info("TFBOT have started successfully")

@@ -1,4 +1,4 @@
-package com.mairo
+package com.mairo.bot
 
 import cats.Monad
 import cats.effect.{Async, ContextShift}
@@ -8,7 +8,7 @@ import com.bot4s.telegram.cats.{Polling, TelegramBot}
 import com.bot4s.telegram.methods.ParseMode
 import com.bot4s.telegram.methods.ParseMode.ParseMode
 import com.bot4s.telegram.models.{KeyboardButton, Message, ReplyKeyboardMarkup}
-import com.mairo.ParentBot._
+import com.mairo.bot.ParentBot._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
 
 object ParentBot {

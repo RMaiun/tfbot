@@ -25,30 +25,39 @@ object MessageFormatter {
 
   case class StatsCmdFormatter[F[_] : Monad]() extends MessageFormatter[F, ShortInfoStats] {
     override def format(data: ShortInfoStats): Flow[F, String] = {
-      val ratings = data.playersRating.indices.map(a => {
-        val index = a + 1
-        val name = data.playersRating(a).surname.capitalize
-        val points = data.playersRating(a).score
-        s"$index. $name $points"
-      }).mkString(System.lineSeparator())
-      val bestStreak = s"${data.bestStreak.player}: ${data.bestStreak.games} games in row"
-      val worstStreak = s"${data.worstStreak.player}: ${data.worstStreak.games} games in row"
-      val msg =
-        s"""```
-           |Season: ${data.season}
-           |Games played: ${data.gamesPlayed}
-           |Days till season end: ${data.daysToSeasonEnd}
-           |${"-" * 30}
-           |Current Rating:
-           |$ratings
-           |${"-" * 30}
-           |Best Streak:
-           |$bestStreak
-           |${"-" * 30}
-           |Worst Streak:
-           |$worstStreak```
+      data.gamesPlayed match {
+        case 0 =>
+          val msg =
+            s"""```
+               |No games found in season ${data.season}```
+           """.stripMargin
+          Flow.right(msg)
+        case _ =>
+          val ratings = data.playersRating.indices.map(a => {
+            val index = a + 1
+            val name = data.playersRating(a).surname.capitalize
+            val points = data.playersRating(a).score
+            s"$index. $name $points"
+          }).mkString(System.lineSeparator())
+          val bestStreak = s"${data.bestStreak.fold("-")(_.player)}: ${data.bestStreak.fold("-")(_.games.toString)} games in row"
+          val worstStreak = s"${data.worstStreak.fold("-")(_.player)}: ${data.worstStreak.fold("-")(_.games.toString)} games in row"
+          val msg =
+            s"""```
+               |Season: ${data.season}
+               |Games played: ${data.gamesPlayed}
+               |Days till season end: ${data.daysToSeasonEnd}
+               |${"-" * 30}
+               |Current Rating:
+               |$ratings
+               |${"-" * 30}
+               |Best Streak:
+               |$bestStreak
+               |${"-" * 30}
+               |Worst Streak:
+               |$worstStreak```
       """.stripMargin
-      Flow.right(msg)
+          Flow.right(msg)
+      }
     }
   }
 

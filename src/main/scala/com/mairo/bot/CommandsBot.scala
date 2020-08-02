@@ -1,10 +1,9 @@
-package com.mairo
+package com.mairo.bot
 
 import cats.Monad
 import cats.effect.{Async, ContextShift, Timer}
 import cats.implicits._
-import com.mairo.ParentBot._
-import com.mairo.bot.{SelfCommand, StartCommand}
+import com.mairo.bot.ParentBot._
 import com.mairo.spi.{FlowControlService, ProviderSet}
 import com.typesafe.scalalogging.Logger
 

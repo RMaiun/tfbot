@@ -1,6 +1,6 @@
 package com.mairo.bot
 
-import com.mairo.ParentBot._
+import com.mairo.bot.ParentBot._
 
 trait StartCommand {
   def startCmdText(version: String): String = {

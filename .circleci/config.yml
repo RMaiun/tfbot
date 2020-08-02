@@ -1,0 +1,74 @@
+# Scala CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/sample-config/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/openjdk:8-jdk
+      - image: circleci/buildpack-deps:stretch
+
+    working_directory: ~/repo
+
+    environment:
+      # Customize the JVM maximum heap limit
+      IMAGE_NAME: mairo/tfbot
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
+      - checkout
+      # Download and cache dependencies
+#      - restore_cache:
+#          keys:
+#            - v1-dependencies-{{ checksum "build.sbt" }}
+#            # fallback to using the latest cache if no exact match is found
+#            - v1-dependencies-
+      - run: cat /dev/null | sbt clean
+      - run: cat /dev/null | sbt compile
+      - run: cat /dev/null | sbt assembly
+#      - save_cache:
+#          paths:
+#            - ~/.m2
+#          key: v1-dependencies--{{ checksum "build.sbt" }}
+      - setup_remote_docker
+      - run: docker build -t $IMAGE_NAME:latest .
+      - run: docker save -o image.tar $IMAGE_NAME
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./image.tar
+  publish-latest:
+    environment:
+      IMAGE_NAME: mairo/tfbot
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker
+      - run: docker load -i /tmp/workspace/image.tar
+      - run: cat /dev/null | echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - run: cat /dev/null | docker push $IMAGE_NAME:latest
+
+workflows:
+  version: 2
+  build-master:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+                - dev
+      - publish-latest:
+          context: myctx
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+                - dev

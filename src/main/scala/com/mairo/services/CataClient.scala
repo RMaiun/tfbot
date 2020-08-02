@@ -14,7 +14,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
   extends CataClientSprayCodecs with LazyLogging with AppConfig {
 
   def fetchPlayers(): Flow[F, Players] = {
-    val path = s"http://localhost:8080/players/all"
+    val path = s"$cataclysmRoot/players/all"
     logger.info("Sending request to cataclysm {}", path)
     val request = sttp.get(uri"$path")
       .response(asJson[Players])
@@ -25,7 +25,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
   }
 
   def fetchShortStats(season: String): Flow[F, ShortInfoStats] = {
-    val path = s"http://localhost:8080/stats/short/${season.toUpperCase}"
+    val path = s"$cataclysmRoot/stats/short/${season.toUpperCase}"
     logger.info("Sending request to cataclysm {}", path)
     val request = sttp.get(uri"$path")
       .response(asJson[ShortInfoStats])
@@ -37,7 +37,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
 
   def fetchLastRounds(season: String, qty: Option[Int] = None): Flow[F, FoundLastRounds] = {
     val roundsNum = qty.fold(lastRoundsQty)(x => x)
-    val path = s"http://localhost:8080/rounds/findLast/${season.toUpperCase}/$roundsNum"
+    val path = s"$cataclysmRoot/rounds/findLast/${season.toUpperCase}/$roundsNum"
     logger.info("Sending request to cataclysm {}", path)
     val request = sttp.get(uri"$path")
       .response(asJson[FoundLastRounds])

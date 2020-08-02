@@ -1,21 +1,27 @@
 name := "tfbot"
 
 lazy val commonSettings = Seq(
-  version := "1.0.0",
+  version := "2.0.0",
   organization := "com.mairo",
-  scalaVersion := "2.12.7",
-  test in assembly := {}
+  scalaVersion := "2.12.7"
 )
 
-libraryDependencies ++= Seq(
-
+lazy val assemblySettings = Seq(
+  test in assembly := {},
+  mainClass in assembly := Some("com.mairo.Launcher"),
+  assemblyJarName in assembly := "tfbot.jar",
+  assemblyMergeStrategy in assembly := {
+    case x if x.contains("io.netty.versions.properties") => MergeStrategy.first
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+  }
 )
 
-lazy val app = (project in file(".")).
-  settings(commonSettings: _*)
+lazy val app = (project in file("."))
+  .settings(commonSettings: _*)
+  .settings(assemblySettings: _*)
   .settings(
-    mainClass in assembly := Some("com.mairo.Launcher"),
-    assemblyJarName in assembly := "tfbot.jar",
     scalacOptions ++= Seq(
       "-deprecation",
       "-encoding", "UTF-8",

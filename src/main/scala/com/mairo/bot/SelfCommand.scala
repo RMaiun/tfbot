@@ -1,7 +1,7 @@
 package com.mairo.bot
 
 import com.bot4s.telegram.models.Message
-import com.mairo.ParentBot.notAvailable
+import com.mairo.bot.ParentBot.notAvailable
 
 trait SelfCommand {
   def selfCmdText(implicit msg: Message): String =
