@@ -10,7 +10,7 @@ object BotException {
 
   case class WrongIntArgException(value: String, cause: Throwable) extends BotException(s"Argument $value is not Integer", Some(cause))
 
-  case class InvalidArgsNumberException() extends BotException("Wrong args quantity. Check /start for instructions")
+  case class InvalidArgsNumberException() extends BotException("Invalid arguments or their quantity. Check /start for instructions")
 
   case class WrongDefinedArgsNumberException(expected: Int, received: Int) extends BotException(s"Wrong args quantity: expected $expected but received $received")
 

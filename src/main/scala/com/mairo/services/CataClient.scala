@@ -17,7 +17,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
 
   def fetchPlayers(): Flow[F, Players] = {
     val path = s"$cataclysmRoot/players/all"
-    logger.info("Sending request to cataclysm {}", path)
+    logger.debug("Sending request to cataclysm {}", path)
     val request = sttp.get(uri"$path")
       .response(asJson[Players])
     val response: Flow[F, Players] = be.send(request)
@@ -28,7 +28,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
 
   def fetchShortStats(season: String): Flow[F, ShortInfoStats] = {
     val path = s"$cataclysmRoot/stats/short/${season.toUpperCase}"
-    logger.info("Sending request to cataclysm {}", path)
+    logger.debug("Sending request to cataclysm {}", path)
     val request = sttp.get(uri"$path")
       .response(asJson[ShortInfoStats])
     val response: Flow[F, ShortInfoStats] = be.send(request)
@@ -40,7 +40,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
   def fetchLastRounds(season: String, qty: Option[Int] = None): Flow[F, FoundLastRounds] = {
     val roundsNum = qty.fold(lastRoundsQty)(x => x)
     val path = s"$cataclysmRoot/rounds/findLast/${season.toUpperCase}/$roundsNum"
-    logger.info("Sending request to cataclysm {}", path)
+    logger.debug("Sending request to cataclysm {}", path)
     val request = sttp.get(uri"$path")
       .response(asJson[FoundLastRounds])
     val response: Flow[F, FoundLastRounds] = be.send(request)
@@ -51,7 +51,7 @@ class CataClient[F[_] : ContextShift](implicit be: SttpBackend[F, Nothing], F: M
 
   def addRound(dto: AddRoundDto): Flow[F, StoredId] = {
     val path = s"$cataclysmRoot/rounds/add"
-    logger.info("Sending request to cataclysm {}", path)
+    logger.debug("Sending request to cataclysm {}", path)
     val request = sttp.post(uri"$path")
       .body(dto)
       .response(asJson[StoredId])

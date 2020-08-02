@@ -38,7 +38,9 @@ object CmdProcessor {
 
   case class AddRoundCmdProcessor[F[_] : Monad : ContextShift, A](cc: CataClient[F]) extends CmdProcessor[F, StoredId] {
     override def process(msg: Message, args: Seq[String]): Flow[F, StoredId] = {
-      val dto = AddRoundDto(args.head, args(1), args(2), args(3), args.size == 5, msg.from.fold("0")(_.id.toString))
+      val winners = args.head.split("/")
+      val losers = args.tail.head.split("/")
+      val dto = AddRoundDto(winners(0), winners(1), losers(0), losers(1), args.size == 3, msg.from.fold("0")(_.id.toString))
       cc.addRound(dto)
     }
   }

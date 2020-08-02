@@ -48,15 +48,26 @@ object ArgValidator extends Validations {
     override def validate(args: Seq[String]): Flow[F, Seq[String]] = {
       val trimArgs = args.map(_.trim)
       trimArgs.size match {
-        case 4 => Flow.right(trimArgs)
-        case 5 =>
-          if (args.last.trim == "суха") {
+        case 2 =>
+          if (checkPlayerPairs(trimArgs)) {
+            Flow.right(trimArgs)
+          } else {
+            Flow.left(InvalidArgsNumberException())
+          }
+        case 3 =>
+          if (checkPlayerPairs(trimArgs) && trimArgs.last.trim == "суха") {
             Flow.right(trimArgs)
           } else {
             Flow.left(WrongShutoutArgException(args.last))
           }
         case _ => Flow.left(WrongDefinedArgsNumberException(4, args.size))
       }
+    }
+
+    private def checkPlayerPairs(args: Seq[String]): Boolean = {
+      val wOk = args.head.contains("/")
+      val lOk = args.tail.head.contains("/")
+      wOk && lOk
     }
   }
 
