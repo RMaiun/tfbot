@@ -29,6 +29,7 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad](token: String, bo
 
   onCommand(PLAYERS_CMD) { implicit msg =>
     for {
+      _ <- logCmdInvocation(PLAYERS_CMD)
       players <- FlowControlService.invoke(msg)(ps.playersCmdSP)
       result <- response(players)
     } yield result
