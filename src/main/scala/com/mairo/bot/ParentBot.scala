@@ -10,7 +10,7 @@ import com.bot4s.telegram.methods.ParseMode.ParseMode
 import com.bot4s.telegram.models.{KeyboardButton, Message, ReplyKeyboardMarkup}
 import com.mairo.bot.ParentBot._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import com.typesafe.scalalogging.Logger
+import io.chrisdavenport.log4cats.Logger
 
 object ParentBot {
   val START_CMD = "/start"
@@ -24,7 +24,7 @@ object ParentBot {
 
 }
 
-abstract class ParentBot[F[_] : Async : ContextShift : Monad](val token: String)
+abstract class ParentBot[F[_] : Async : ContextShift : Monad:Logger](val token: String)
   extends TelegramBot(token, AsyncHttpClientCatsBackend())
     with Polling[F]
     with Commands[F]
@@ -57,7 +57,7 @@ abstract class ParentBot[F[_] : Async : ContextShift : Monad](val token: String)
       defaultMarkup()).void
   }
 
-  def logCmdInvocation(cmd:String)(implicit logger: Logger, msg:Message): F[Unit] ={
-    Async[F].delay(logger.info("{} was invoked by {}", cmd, msg.from.fold("incognito")(_.firstName)))
+  def logCmdInvocation(cmd:String)(implicit msg:Message): F[Unit] ={
+    Logger[F].info(s"$SELF_CMD was invoked by ${msg.from.fold("Incognito")(_.firstName)}")
   }
 }

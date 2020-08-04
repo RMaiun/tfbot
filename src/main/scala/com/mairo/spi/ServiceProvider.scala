@@ -11,25 +11,25 @@ case class ServiceProvider[F[_], A](validator: ArgValidator[F],
 
 
 object ServiceProvider {
-  def playersCmdServiceProvider[F[_] : Monad : ContextShift](cc: CataClient[F]): ServiceProvider[F, Players] =
+  def playersCmdServiceProvider[F[_] : Monad : ContextShift]()(implicit cc: CataClient[F]): ServiceProvider[F, Players] =
     new ServiceProvider[F, Players](
       ArgValidator.EmptyValidator(),
       CmdProcessor.PlayersCmdProcessor(cc),
       MessageFormatter.PlayersCmdFormatter())
 
-  def statsCmdServiceProvider[F[_] : Monad : ContextShift](cc: CataClient[F]): ServiceProvider[F, ShortInfoStats] =
+  def statsCmdServiceProvider[F[_] : Monad : ContextShift]()(implicit cc: CataClient[F]): ServiceProvider[F, ShortInfoStats] =
     new ServiceProvider[F, ShortInfoStats](
       ArgValidator.StatsValidator(),
       CmdProcessor.StatsCmdProcessor(cc),
       MessageFormatter.StatsCmdFormatter())
 
-  def lastCmdServiceProvider[F[_] : Monad : ContextShift](cc: CataClient[F]): ServiceProvider[F, FoundLastRounds] =
+  def lastCmdServiceProvider[F[_] : Monad : ContextShift]()(implicit cc: CataClient[F]): ServiceProvider[F, FoundLastRounds] =
     new ServiceProvider[F, FoundLastRounds](
       ArgValidator.LastCmdValidator(),
       CmdProcessor.LastCmdProcessor(cc),
       MessageFormatter.LastCmdFormatter())
 
-  def addRoundCmdServiceProvider[F[_] : Monad : ContextShift](cc: CataClient[F]): ServiceProvider[F, StoredId] =
+  def addRoundCmdServiceProvider[F[_] : Monad : ContextShift]()(implicit cc: CataClient[F]): ServiceProvider[F, StoredId] =
     new ServiceProvider[F, StoredId](
       ArgValidator.AddRoundCmdValidator(),
       CmdProcessor.AddRoundCmdProcessor(cc),

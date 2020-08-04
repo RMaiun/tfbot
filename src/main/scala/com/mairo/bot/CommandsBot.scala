@@ -5,13 +5,12 @@ import cats.effect.{Async, ContextShift, Timer}
 import cats.implicits._
 import com.mairo.bot.ParentBot._
 import com.mairo.spi.{FlowControlService, ProviderSet}
-import com.typesafe.scalalogging.Logger
+import io.chrisdavenport.log4cats.Logger
 
-class CommandsBot[F[_] : Async : Timer : ContextShift : Monad](token: String, botVersion: String)(implicit ps: ProviderSet[F])
+class CommandsBot[F[_] : Async : Timer : ContextShift : Monad: Logger](token: String, botVersion: String)(implicit ps: ProviderSet[F])
   extends ParentBot[F](token)
     with StartCommand
     with SelfCommand {
-  implicit val log: Logger = Logger(getClass)
 
   onCommand(START_CMD) { implicit msg =>
     for {

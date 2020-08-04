@@ -6,9 +6,8 @@ import cats.effect.Async
 import cats.implicits._
 import com.bot4s.telegram.models.Message
 import com.mairo.exceptions.BotException.{CataclysmExpectedException, CataclysmUnexpectedException}
-import com.typesafe.scalalogging.LazyLogging
 
-object FlowControlService extends LazyLogging {
+object FlowControlService {
 
   def invoke[F[_] : Monad : Async, A](msg: Message, args: Seq[String] = Seq())
                                      (serviceProducer: ServiceProvider[F, A]): F[String] = {
