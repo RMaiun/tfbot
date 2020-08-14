@@ -19,6 +19,7 @@ object ParentBot {
   val LAST_CMD = "/last"
   val STATS_CMD = "/stats"
   val ADD_ROUND_CMD = "/add"
+  val LOAD_XLSX_REPORT = "/xlsxReport"
 
   val notAvailable = "n/a"
 
@@ -34,8 +35,9 @@ abstract class ParentBot[F[_] : Async : ContextShift : Monad:Logger](val token: 
     val playersButton = KeyboardButton(PLAYERS_CMD)
     val statsButton = KeyboardButton(STATS_CMD)
     val lastButton = KeyboardButton(LAST_CMD)
+    val xlsxButton = KeyboardButton(LOAD_XLSX_REPORT)
 
-    val markup = ReplyKeyboardMarkup(Seq(Seq(statsButton, playersButton), Seq(lastButton)),
+    val markup = ReplyKeyboardMarkup(Seq(Seq(statsButton, playersButton), Seq(lastButton, xlsxButton)),
       Some(true), Some(false), Some(true))
     Some(markup)
   }
@@ -58,6 +60,6 @@ abstract class ParentBot[F[_] : Async : ContextShift : Monad:Logger](val token: 
   }
 
   def logCmdInvocation(cmd:String)(implicit msg:Message): F[Unit] ={
-    Logger[F].info(s"$SELF_CMD was invoked by ${msg.from.fold("Incognito")(_.firstName)}")
+    Logger[F].info(s"$cmd was invoked by ${msg.from.fold("Incognito")(_.firstName)}")
   }
 }

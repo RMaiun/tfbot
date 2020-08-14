@@ -4,7 +4,7 @@ import cats.MonadError
 import cats.effect.ContextShift
 import cats.implicits._
 import com.mairo.dtos.CataClientIntputDtos.AddRoundDto
-import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, ShortInfoStats, StoredId}
+import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, Resource, ShortInfoStats, StoredId}
 import com.mairo.exceptions.BotException.CataclysmExpectedException
 import com.mairo.utils.Flow.Flow
 import com.mairo.utils.{AppConfig, CataClientSprayCodecs}
@@ -31,6 +31,13 @@ class CataClient[F[_] : ContextShift : Logger](implicit be: SttpBackend[F, Nothi
 
   private def logRequest(path: String): F[Unit] = {
     Logger[F].debug(s"Sending request to cataclysm $path")
+  }
+
+  def getStatsXlsxDocument(season:String): Flow[F, Array[Byte]] = {
+    val path = s"$cataclysmRoot/reports/xlsx/$season"
+    val request: RequestT[Id, Array[Byte], Nothing] = sttp.get(uri"$path")
+      .response(asByteArray)
+    sendRequest(path, request)
   }
 
   def fetchPlayers(): Flow[F, Players] = {

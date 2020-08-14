@@ -20,7 +20,8 @@ object Launcher extends IOApp with AppConfig {
     ServiceProvider.playersCmdServiceProvider(),
     ServiceProvider.statsCmdServiceProvider(),
     ServiceProvider.lastCmdServiceProvider(),
-    ServiceProvider.addRoundCmdServiceProvider())
+    ServiceProvider.addRoundCmdServiceProvider(),
+    ServiceProvider.loadXlsxReportServiceProvider())
 
   def run(args: List[String]): IO[ExitCode] = {
     for {
@@ -30,7 +31,5 @@ object Launcher extends IOApp with AppConfig {
       _ <- Logger[IO].info("TFBOT have started successfully")
       exitCode <- new CommandsBot[IO](botToken, botVersion).startPolling().map(_ => ExitCode.Success)
     } yield exitCode
-
-
   }
 }

@@ -1,13 +1,17 @@
 package com.mairo.bot
 
 import cats.Monad
+import cats.data.EitherT
 import cats.effect.{Async, ContextShift, Timer}
 import cats.implicits._
+import com.bot4s.telegram.methods.SendDocument
+import com.bot4s.telegram.models.InputFile
 import com.mairo.bot.ParentBot._
 import com.mairo.spi.{FlowControlService, ProviderSet}
+import com.mairo.utils.Flow
 import io.chrisdavenport.log4cats.Logger
 
-class CommandsBot[F[_] : Async : Timer : ContextShift : Monad: Logger](token: String, botVersion: String)(implicit ps: ProviderSet[F])
+class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: String, botVersion: String)(implicit ps: ProviderSet[F])
   extends ParentBot[F](token)
     with StartCommand
     with SelfCommand {
@@ -61,6 +65,25 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad: Logger](token: St
         stats <- FlowControlService.invoke(msg, args)(ps.addRoundCmdSP)
         result <- response(stats)
       } yield result
+    }
+  }
+
+  onCommand(LOAD_XLSX_REPORT) { implicit msg =>
+    withArgs { args =>
+      val result = (for {
+        _ <- EitherT(Flow.fromF(logCmdInvocation(LOAD_XLSX_REPORT)))
+        byteArr <- EitherT(FlowControlService.produceBinary(msg, args)(ps.loadXlsxReportCmdSP))
+      } yield byteArr).value
+      Monad[F].flatMap(result) {
+        case Left(err) =>
+          for {
+            error <- FlowControlService.formatError(err)
+            res <- response(error)
+          } yield res
+        case Right(byteArr) =>
+          val doc = InputFile("statistics.xlsx", byteArr)
+          request(SendDocument(msg.chat.id, doc, replyMarkup = defaultMarkup())).void
+      }
     }
   }
 

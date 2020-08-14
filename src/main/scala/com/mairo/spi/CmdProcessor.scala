@@ -45,4 +45,11 @@ object CmdProcessor {
     }
   }
 
+  case class LoadXlsxReportCmdProcessor[F[_] : Monad : ContextShift, A](cc: CataClient[F]) extends CmdProcessor[F, Array[Byte]] {
+    override def process(msg: Message, args: Seq[String]): Flow[F, Array[Byte]] = {
+      val season = if (args.isEmpty) QuarterCalculator.currentQuarter else args.head
+      cc.getStatsXlsxDocument(season)
+    }
+  }
+
 }

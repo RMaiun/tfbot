@@ -9,6 +9,9 @@ case class ServiceProvider[F[_], A](validator: ArgValidator[F],
                                     processor: CmdProcessor[F, A],
                                     formatter: MessageFormatter[F, A])
 
+case class BinaryServiceProvider[F[_]](validator: ArgValidator[F],
+                                       processor: CmdProcessor[F, Array[Byte]])
+
 
 object ServiceProvider {
   def playersCmdServiceProvider[F[_] : Monad : ContextShift]()(implicit cc: CataClient[F]): ServiceProvider[F, Players] =
@@ -34,4 +37,9 @@ object ServiceProvider {
       ArgValidator.AddRoundCmdValidator(),
       CmdProcessor.AddRoundCmdProcessor(cc),
       MessageFormatter.AddRoundCmdFormatter())
+
+  def loadXlsxReportServiceProvider[F[_] : Monad : ContextShift]()(implicit cc: CataClient[F]): BinaryServiceProvider[F] =
+    new BinaryServiceProvider[F](
+      ArgValidator.LoadXlsxValidator(),
+      CmdProcessor.LoadXlsxReportCmdProcessor(cc))
 }

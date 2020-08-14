@@ -29,8 +29,10 @@ object CataClientOutputDtos {
 
   case class FoundLastRounds(rounds: List[Round])
 
-  case class StoredId(id:Long)
+  case class StoredId(id: Long)
 
   case class ExpectedException(reasons: List[String])
+
+  case class Resource(name: String, content: Array[Byte])
 
 }

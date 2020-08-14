@@ -1,8 +1,9 @@
 package com.mairo.utils
 
-import cats.implicits._
+import cats.Monad
+import cats.syntax.either._
 import com.mairo.exceptions.BotException.{WrongIntArgException, WrongSeasonArgException}
-import com.mairo.utils.Flow.Result
+import com.mairo.utils.Flow.{Flow, Result}
 
 import scala.util.{Failure, Success, Try}
 
@@ -21,5 +22,9 @@ trait Validations {
       case Failure(exception) => WrongIntArgException(str, exception).asLeft[String]
       case Success(_) => str.asRight[Throwable]
     }
+  }
+
+  def validateSeason[F[_] : Monad](season: String): Flow[F, Seq[String]] = {
+    Monad[F].map(Flow.fromResult(isSeasonValid(season)))(res => res.map(Seq(_)))
   }
 }
