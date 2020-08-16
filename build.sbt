@@ -1,7 +1,7 @@
 name := "tfbot"
 
 lazy val commonSettings = Seq(
-  version := "2.0.0",
+  version := "2.1.1",
   organization := "com.mairo",
   scalaVersion := "2.12.7"
 )
