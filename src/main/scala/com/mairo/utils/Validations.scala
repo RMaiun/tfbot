@@ -24,6 +24,12 @@ trait Validations {
     }
   }
 
+  def checkPlayerPairs(args: Seq[String]): Boolean = {
+    val wOk = args.head.contains("/")
+    val lOk = args.tail.head.contains("/")
+    wOk && lOk
+  }
+
   def validateSeason[F[_] : Monad](season: String): Flow[F, Seq[String]] = {
     Monad[F].map(Flow.fromResult(isSeasonValid(season)))(res => res.map(Seq(_)))
   }
