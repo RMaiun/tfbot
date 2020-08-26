@@ -1,10 +1,10 @@
 package com.mairo.services
 
 import cats.MonadError
-import cats.effect.ContextShift
+import cats.effect.{ContextShift, Timer}
 import cats.implicits._
 import com.mairo.dtos.CataClientIntputDtos.AddRoundDto
-import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, Resource, ShortInfoStats, StoredId}
+import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, ShortInfoStats, StoredId}
 import com.mairo.exceptions.BotException.CataclysmExpectedException
 import com.mairo.utils.Flow.Flow
 import com.mairo.utils.{AppConfig, CataClientSprayCodecs}
@@ -12,7 +12,11 @@ import com.softwaremill.sttp._
 import com.softwaremill.sttp.sprayJson._
 import io.chrisdavenport.log4cats.Logger
 
-class CataClient[F[_] : ContextShift : Logger](implicit be: SttpBackend[F, Nothing], F: MonadError[F, Throwable])
+import scala.concurrent.duration._
+
+class CataClient[F[_] : ContextShift : Logger](implicit be: SttpBackend[F, Nothing],
+                                               timer: Timer[F],
+                                               F: MonadError[F, Throwable])
   extends CataClientSprayCodecs with AppConfig {
 
   private def sendRequest[T](path: String, request: RequestT[Id, T, Nothing]): Flow[F, T] = {
@@ -26,14 +30,14 @@ class CataClient[F[_] : ContextShift : Logger](implicit be: SttpBackend[F, Nothi
   private def handleResponse[T](resp: F[Response[T]]): Flow[F, T] = {
     val mappedResponse: Flow[F, T] = resp.map(_.body)
       .map(_.left.map(str => CataclysmExpectedException(str)))
-    F.handleError(mappedResponse)(err => err.asLeft[T])
+    F.handleError(RetryService.retry(mappedResponse, Seq(1 seconds)))(err => err.asLeft[T])
   }
 
   private def logRequest(path: String): F[Unit] = {
     Logger[F].debug(s"Sending request to cataclysm $path")
   }
 
-  def getStatsXlsxDocument(season:String): Flow[F, Array[Byte]] = {
+  def getStatsXlsxDocument(season: String): Flow[F, Array[Byte]] = {
     val path = s"$cataclysmRoot/reports/xlsx/$season"
     val request: RequestT[Id, Array[Byte], Nothing] = sttp.get(uri"$path")
       .response(asByteArray)
