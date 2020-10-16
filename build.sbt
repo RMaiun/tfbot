@@ -37,6 +37,7 @@ lazy val app = (project in file("."))
       "org.typelevel" %% "cats-effect" % "2.1.3",
       "com.softwaremill.sttp" %% "async-http-client-backend-cats" % "1.7.2",
       "com.softwaremill.sttp" %% "spray-json" % "1.7.2",
-      "com.typesafe" % "config" % "1.4.0"
+      "com.typesafe" % "config" % "1.4.0",
+      "com.rabbitmq" % "amqp-client" % "5.9.0"
     )
   )

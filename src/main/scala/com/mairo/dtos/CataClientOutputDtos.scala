@@ -2,6 +2,9 @@ package com.mairo.dtos
 
 import java.time.LocalDateTime
 
+import io.circe.Json
+import spray.json.{JsObject, JsString, JsValue}
+
 object CataClientOutputDtos {
 
   case class Player(id: Long, surname: String)
@@ -34,5 +37,8 @@ object CataClientOutputDtos {
   case class ExpectedException(reasons: List[String])
 
   case class Resource(name: String, content: Array[Byte])
+
+  case class UklRequest(cmd:String, msgId:Int, chatId: String, data:JsValue = JsString(""))
+  case class UklResponse(msgId:Int, chatId: String, result: String)
 
 }

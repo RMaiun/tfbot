@@ -1,53 +1,80 @@
 package com.mairo.services
 
-import cats.Monad
-import com.mairo.exceptions.BotException.{InvalidArgsNumberException, WrongDefinedArgsNumberException, WrongShutoutArgException}
-import com.mairo.utils.Flow.Flow
-import com.mairo.utils.{Flow, Validations}
+import cats.implicits._
+import cats.{ApplicativeError, MonadError}
+import com.mairo.exceptions.BotException._
 
-object ArgValidator extends Validations {
+import scala.util.{Failure, Success, Try}
 
-  def validateSeasonArgs[F[_] : Monad](args: Seq[String]): Flow[F, Seq[String]] = {
+class ArgValidator[F[_]](implicit MT: MonadError[F, Throwable]) {
+
+  def validateSeasonArgs(args: Seq[String]): F[Seq[String]] = {
     args match {
-      case Seq() => Flow.right(args)
+      case Seq() => MT.pure(args)
       case Seq(season) => validateSeason(season)
-      case _ => Flow.left[F, Seq[String]](InvalidArgsNumberException())
+      case _ => MT.raiseError(InvalidArgsNumberException())
     }
   }
 
-  def validateSeasonWithQtyArgs[F[_] : Monad](args: Seq[String]): Flow[F, Seq[String]] = {
+  def validateSeasonWithQtyArgs(args: Seq[String]): F[Seq[String]] = {
     args match {
-      case Seq() => Flow.right(args)
+      case Seq() => MT.pure(args)
       case Seq(season) => validateSeason(season)
       case Seq(season, qty) => validateSeasonWithQty(season, qty)
-      case _ => Flow.left[F, Seq[String]](InvalidArgsNumberException())
+      case _ => MT.raiseError(InvalidArgsNumberException())
     }
   }
 
-  def validateSeasonWithQty[F[_] : Monad](season: String, qty: String): Flow[F, Seq[String]] = {
-    val res = for {
+  def validateSeasonWithQty(season: String, qty: String): F[Seq[String]] = {
+    for {
       s <- isSeasonValid(season)
       q <- isInt(qty)
     } yield Seq(s, q)
-    Flow.fromResult(res)
   }
 
-  def validateAddRoundArgs[F[_] : Monad](args: Seq[String]): Flow[F, Seq[String]] = {
+  def validateAddRoundArgs(args: Seq[String]): F[Seq[String]] = {
     val trimArgs = args.map(_.trim)
     trimArgs.size match {
       case 2 =>
         if (checkPlayerPairs(trimArgs)) {
-          Flow.right(trimArgs)
+          MT.pure(trimArgs)
         } else {
-          Flow.left(InvalidArgsNumberException())
+          MT.raiseError(InvalidArgsNumberException())
         }
       case 3 =>
         if (checkPlayerPairs(trimArgs) && trimArgs.last.trim == "суха") {
-          Flow.right(trimArgs)
+          MT.pure(trimArgs)
         } else {
-          Flow.left(WrongShutoutArgException(args.last))
+          MT.raiseError(WrongShutoutArgException(args.last))
         }
-      case _ => Flow.left(WrongDefinedArgsNumberException(4, args.size))
+      case _ => MT.raiseError(WrongDefinedArgsNumberException(4, args.size))
     }
+  }
+
+  def isSeasonValid(season: String)(implicit AT: ApplicativeError[F, Throwable]): F[String] = {
+    val pattern = "^[Ss][1-4]\\|\\d{4}$".r
+    pattern.findFirstMatchIn(season) match {
+      case Some(_) => AT.pure(season)
+      case None => AT.raiseError(WrongSeasonArgException(season))
+    }
+  }
+
+  def isInt(str: String)(implicit AT: ApplicativeError[F, Throwable]): F[String] = {
+    Try(str.toInt) match {
+      case Failure(exception) => AT.raiseError(WrongIntArgException(str, exception))
+      case Success(_) => AT.pure(str)
+    }
+  }
+
+  def checkPlayerPairs(args: Seq[String]): Boolean = {
+    val wOk = args.head.contains("/")
+    val lOk = args.tail.head.contains("/")
+    wOk && lOk
+  }
+
+  def validateSeason(season: String)(implicit MT: MonadError[F, Throwable]): F[Seq[String]] = {
+    for {
+      res <- isSeasonValid(season)
+    } yield Seq(res)
   }
 }

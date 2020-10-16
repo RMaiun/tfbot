@@ -9,4 +9,6 @@ object CataClientIntputDtos {
                          shutout: Boolean,
                          moderator: String)
 
+  case class FindLastRounds(season: String, qty: Int = Int.MaxValue)
+
 }

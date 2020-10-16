@@ -2,7 +2,7 @@ package com.mairo
 
 import cats.effect.{ExitCode, IO, IOApp, Sync}
 import com.mairo.bot.CommandsBot
-import com.mairo.services.{CataClient, PlayersService, RoundsService, StatsService}
+import com.mairo.services._
 import com.mairo.utils.AppConfig
 import com.softwaremill.sttp.SttpBackend
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
@@ -15,10 +15,11 @@ object Launcher extends IOApp with AppConfig {
   implicit def unsafeLogger[F[_] : Sync]: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
 
   val cataClient: CataClient[IO] = new CataClient[IO]
-  val playersService = new PlayersService[IO](cataClient)
-  val roundsService = new RoundsService[IO](cataClient)
+  val argValidator: ArgValidator[IO] = new ArgValidator[IO]()
   val statsService = new StatsService[IO](cataClient)
-  val bot = new CommandsBot[IO](botToken, botVersion, playersService, roundsService, statsService)
+  val sender = new UklSender[IO]
+  val bot = new CommandsBot[IO](botToken, botVersion, argValidator, statsService, sender)
+  val consumer = new UklConsumer[IO](bot)
 
   def run(args: List[String]): IO[ExitCode] = {
     for {
@@ -26,6 +27,7 @@ object Launcher extends IOApp with AppConfig {
       _ <- Logger[IO].info(s"Found bot token = $botToken")
       _ <- Logger[IO].info(s"Found cataclysm.root = $cataclysmRoot")
       _ <- Logger[IO].info("TFBOT have started successfully")
+      _ <- Sync[IO].delay(consumer.startListener())
       exitCode <- bot.startPolling().map(_ => ExitCode.Success)
     } yield exitCode
   }
