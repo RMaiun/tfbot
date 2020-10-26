@@ -16,9 +16,8 @@ object Launcher extends IOApp with AppConfig {
 
   val cataClient: CataClient[IO] = new CataClient[IO]
   val argValidator: ArgValidator[IO] = new ArgValidator[IO]()
-  val statsService = new StatsService[IO](cataClient)
   val sender = new UklSender[IO]
-  val bot = new CommandsBot[IO](botToken, botVersion, argValidator, statsService, sender)
+  val bot = new CommandsBot[IO](botToken, botVersion, argValidator, sender, cataClient)
   val consumer = new UklConsumer[IO](bot)
 
   def run(args: List[String]): IO[ExitCode] = {

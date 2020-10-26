@@ -3,23 +3,24 @@ package com.mairo.services
 import cats.MonadError
 import cats.effect.{ContextShift, Timer}
 import cats.implicits._
-import com.mairo.dtos.CataClientIntputDtos.AddRoundDto
-import com.mairo.dtos.CataClientOutputDtos.{FoundLastRounds, Players, ShortInfoStats, StoredId}
 import com.mairo.exceptions.BotException.CataclysmExpectedException
-import com.mairo.utils.Flow.Flow
 import com.mairo.utils.{AppConfig, CataClientSprayCodecs}
 import com.softwaremill.sttp._
-import com.softwaremill.sttp.sprayJson._
 import io.chrisdavenport.log4cats.Logger
-
-import scala.concurrent.duration._
 
 class CataClient[F[_] : ContextShift : Logger](implicit be: SttpBackend[F, Nothing],
                                                timer: Timer[F],
                                                F: MonadError[F, Throwable])
   extends CataClientSprayCodecs with AppConfig {
 
-  private def sendRequest[T](path: String, request: RequestT[Id, T, Nothing]): Flow[F, T] = {
+  def getStatsXlsxDocument(season: String): F[Array[Byte]] = {
+    val path = s"$cataclysmRoot/reports/xlsx/$season"
+    val request: RequestT[Id, Array[Byte], Nothing] = sttp.get(uri"$path")
+      .response(asByteArray)
+    sendRequest(path, request)
+  }
+
+  private def sendRequest[T](path: String, request: RequestT[Id, T, Nothing]): F[T] = {
     val response = for {
       _ <- logRequest(path)
       resp <- be.send(request)
@@ -27,50 +28,16 @@ class CataClient[F[_] : ContextShift : Logger](implicit be: SttpBackend[F, Nothi
     handleResponse(response)
   }
 
-  private def handleResponse[T](resp: F[Response[T]]): Flow[F, T] = {
-    val mappedResponse: Flow[F, T] = resp.map(_.body)
-      .map(_.left.map(str => CataclysmExpectedException(str)))
-    F.handleError(RetryService.retry(mappedResponse, Seq(1 seconds)))(err => err.asLeft[T])
+  private def handleResponse[T](resp: F[Response[T]]): F[T] = {
+    resp.map(_.body)
+      .flatMap {
+        case Left(str) => F.raiseError(CataclysmExpectedException(str))
+        case Right(data) => F.pure(data)
+      }
   }
 
   private def logRequest(path: String): F[Unit] = {
     Logger[F].debug(s"Sending request to cataclysm $path")
   }
 
-  def getStatsXlsxDocument(season: String): Flow[F, Array[Byte]] = {
-    val path = s"$cataclysmRoot/reports/xlsx/$season"
-    val request: RequestT[Id, Array[Byte], Nothing] = sttp.get(uri"$path")
-      .response(asByteArray)
-    sendRequest(path, request)
-  }
-
-  def fetchPlayers(): Flow[F, Players] = {
-    val path = s"$cataclysmRoot/players/all"
-    val request: RequestT[Id, Players, Nothing] = sttp.get(uri"$path")
-      .response(asJson[Players])
-    sendRequest(path, request)
-  }
-
-  def fetchShortStats(season: String): Flow[F, ShortInfoStats] = {
-    val path = s"$cataclysmRoot/stats/short/${season.toUpperCase}"
-    val request = sttp.get(uri"$path")
-      .response(asJson[ShortInfoStats])
-    sendRequest(path, request)
-  }
-
-  def fetchLastRounds(season: String, qty: Option[Int] = None): Flow[F, FoundLastRounds] = {
-    val roundsNum = qty.fold(lastRoundsQty)(x => x)
-    val path = s"$cataclysmRoot/rounds/findLast/${season.toUpperCase}/$roundsNum"
-    val request = sttp.get(uri"$path")
-      .response(asJson[FoundLastRounds])
-    sendRequest(path, request)
-  }
-
-  def addRound(dto: AddRoundDto): Flow[F, StoredId] = {
-    val path = s"$cataclysmRoot/rounds/add"
-    val request = sttp.post(uri"$path")
-      .body(dto)
-      .response(asJson[StoredId])
-    sendRequest(path, request)
-  }
 }

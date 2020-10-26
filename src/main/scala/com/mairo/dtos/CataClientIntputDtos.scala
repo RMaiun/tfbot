@@ -11,4 +11,8 @@ object CataClientIntputDtos {
 
   case class FindLastRounds(season: String, qty: Int = Int.MaxValue)
 
+  case class FindShortStats(season:String)
+
+  case class FetchLastRounds(season:String, qty: Int)
+
 }
