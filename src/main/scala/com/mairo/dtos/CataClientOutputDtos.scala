@@ -38,7 +38,7 @@ object CataClientOutputDtos {
 
   case class Resource(name: String, content: Array[Byte])
 
-  case class UklRequest(cmd:String, msgId:Int, chatId: String, data:JsValue = JsString(""))
+  case class UklRequest(cmd:String, msgId:Int, chatId: String, data:Option[JsValue] = None)
   case class UklResponse(msgId:Int, chatId: String, result: String)
 
 }

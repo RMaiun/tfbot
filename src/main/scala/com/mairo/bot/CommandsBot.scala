@@ -50,7 +50,7 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
         _ <- logCmdInvocation(ADD_ROUND_CMD)
         _ <- argValidator.validateAddRoundArgs(args)
         body <- MT.pure(addRoundFormat.write(prepareAddRoundDto(args, msg)))
-        _ <- uklSender.send(UklRequest("addRound", msg.messageId, msg.chat.id.toString, body))
+        _ <- uklSender.send(UklRequest("addRound", msg.messageId, msg.chat.id.toString, Some(body)))
       } yield ()
       handleError(result, msg)
     }
@@ -60,9 +60,9 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
     withArgs { args =>
       val result = for {
         _ <- logCmdInvocation(LAST_CMD)
-        _ <- argValidator.validateSeasonArgs(args)
+        _ <- argValidator.validateSeasonWithQtyArgs(args)
         body <- MT.pure(findLastRoundsFormat.write(prepareLastRoundArgs(args)))
-        _ <- uklSender.send(UklRequest("findLastRounds", msg.messageId, msg.chat.id.toString, body))
+        _ <- uklSender.send(UklRequest("findLastRounds", msg.messageId, msg.chat.id.toString, Some(body)))
       } yield ()
       handleError(result, msg)
     }
@@ -74,7 +74,7 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
         _ <- logCmdInvocation(STATS_CMD)
         _ <- argValidator.validateSeasonArgs(args)
         body <- MT.pure(findShortStatsFormat.write(prepareFindShortStatsDto(args)))
-        _ <- uklSender.send(UklRequest("shortStats", msg.messageId, msg.chat.id.toString, body))
+        _ <- uklSender.send(UklRequest("shortStats", msg.messageId, msg.chat.id.toString, Some(body)))
       } yield ()
       handleError(result, msg)
     }

@@ -9,7 +9,7 @@ object CataClientIntputDtos {
                          shutout: Boolean,
                          moderator: String)
 
-  case class FindLastRounds(season: String, qty: Int = Int.MaxValue)
+  case class FindLastRounds(season: String, qty: Int = 6)
 
   case class FindShortStats(season:String)
 
