@@ -8,7 +8,7 @@ object CataClientOutputDtos {
 
   case class Players(players: List[Player])
 
-  case class PlayerStats(surname: String, score: Int)
+  case class PlayerStats(surname: String, score: BigDecimal)
 
   case class Streak(player: String, games: Int)
 
