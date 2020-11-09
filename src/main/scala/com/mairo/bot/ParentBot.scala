@@ -25,7 +25,9 @@ object ParentBot {
   val STATS_CMD = "/stats"
   val ADD_ROUND_CMD = "/add"
   val LOAD_XLSX_REPORT = "/xlsxReport"
-
+  val LINK_CMD = "/link"
+  val SUBSCRIBE_CMD = "/subscribe"
+  val UNSUBSCRIBE_CMD = "/unsubscribe"
   val notAvailable = "n/a"
   val ERROR = "*ERROR*:"
 

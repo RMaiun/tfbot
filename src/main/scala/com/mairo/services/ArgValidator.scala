@@ -8,6 +8,13 @@ import scala.util.{Failure, Success, Try}
 
 class ArgValidator[F[_]](implicit MT: MonadError[F, Throwable]) {
 
+  def validateLinkTidArgs(args: Seq[String]): F[Seq[String]] = {
+    args match {
+      case Seq(x, y) => MT.pure(args)
+      case _ => MT.raiseError(InvalidArgsNumberException())
+    }
+  }
+
   def validateSeasonArgs(args: Seq[String]): F[Seq[String]] = {
     args match {
       case Seq() => MT.pure(args)

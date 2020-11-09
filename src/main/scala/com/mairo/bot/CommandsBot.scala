@@ -6,7 +6,7 @@ import cats.{Monad, MonadError}
 import com.bot4s.telegram.methods.SendDocument
 import com.bot4s.telegram.models.{InputFile, Message}
 import com.mairo.bot.ParentBot._
-import com.mairo.dtos.CataClientIntputDtos.{AddRoundDto, FindLastRounds, FindShortStats}
+import com.mairo.dtos.CataClientIntputDtos._
 import com.mairo.dtos.CataClientOutputDtos.{UklRequest, UklResponse}
 import com.mairo.services._
 import com.mairo.utils.CataClientSprayCodecs
@@ -80,6 +80,39 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
     }
   }
 
+  onCommand(LINK_CMD) { implicit msg =>
+    withArgs { args =>
+      val result = for {
+        _ <- logCmdInvocation(LINK_CMD)
+        _ <- argValidator.validateLinkTidArgs(args)
+        body <- MT.pure(linkTidFormat.write(LinkTidDto(args.head, args.tail.head, msg.from.fold("0")(_.id.toString))))
+        _ <- uklSender.send(UklRequest("linkTid", msg.messageId, msg.chat.id.toString, Some(body)))
+      } yield ()
+      handleError(result, msg)
+    }
+  }
+
+  onCommand(SUBSCRIBE_CMD) { implicit msg =>
+    withArgs { args =>
+      val result = for {
+        _ <- logCmdInvocation(SUBSCRIBE_CMD)
+        body <- MT.pure(subscriptionActionFormat.write(SubscriptionActionDto(enableSubscriptions = true, msg.from.fold("0")(_.id.toString))))
+        _ <- uklSender.send(UklRequest("subscribe", msg.messageId, msg.chat.id.toString, Some(body)))
+      } yield ()
+      handleError(result, msg)
+    }
+  }
+
+  onCommand(UNSUBSCRIBE_CMD) { implicit msg =>
+    withArgs { args =>
+      val result = for {
+        _ <- logCmdInvocation(UNSUBSCRIBE_CMD)
+        body <- MT.pure(subscriptionActionFormat.write(SubscriptionActionDto(enableSubscriptions = false, msg.from.fold("0")(_.id.toString))))
+        _ <- uklSender.send(UklRequest("unsubscribe", msg.messageId, msg.chat.id.toString, Some(body)))
+      } yield ()
+      handleError(result, msg)
+    }
+  }
 
   onCommand(LOAD_XLSX_REPORT) { implicit msg =>
     withArgs { args =>

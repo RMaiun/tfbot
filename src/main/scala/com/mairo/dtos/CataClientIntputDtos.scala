@@ -11,8 +11,12 @@ object CataClientIntputDtos {
 
   case class FindLastRounds(season: String, qty: Int = 6)
 
-  case class FindShortStats(season:String)
+  case class FindShortStats(season: String)
 
-  case class FetchLastRounds(season:String, qty: Int)
+  case class FetchLastRounds(season: String, qty: Int)
+
+  case class LinkTidDto(tid: String, nameToLink: String, moderator: String)
+
+  case class SubscriptionActionDto(enableSubscriptions: Boolean, tid: String)
 
 }
