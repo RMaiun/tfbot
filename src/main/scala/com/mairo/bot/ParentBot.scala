@@ -24,7 +24,8 @@ object ParentBot {
   val LAST_CMD = "/last"
   val STATS_CMD = "/stats"
   val ADD_ROUND_CMD = "/add"
-  val LOAD_XLSX_REPORT = "/xlsxReport"
+  val LOAD_XLSX_REPORT_CMD = "/xlsxReport"
+  val DUMP_CMD = "/dump"
   val LINK_CMD = "/link"
   val SUBSCRIBE_CMD = "/subscribe"
   val UNSUBSCRIBE_CMD = "/unsubscribe"
@@ -44,7 +45,7 @@ abstract class ParentBot[F[_] : Async : ContextShift : Monad : Logger](val token
     val playersButton = KeyboardButton(PLAYERS_CMD)
     val statsButton = KeyboardButton(STATS_CMD)
     val lastButton = KeyboardButton(LAST_CMD)
-    val xlsxButton = KeyboardButton(LOAD_XLSX_REPORT)
+    val xlsxButton = KeyboardButton(LOAD_XLSX_REPORT_CMD)
 
     val markup = ReplyKeyboardMarkup(Seq(Seq(statsButton, playersButton), Seq(lastButton, xlsxButton)),
       Some(true), Some(false), Some(true))

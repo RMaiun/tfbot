@@ -114,11 +114,22 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
     }
   }
 
-  onCommand(LOAD_XLSX_REPORT) { implicit msg =>
+  onCommand(LOAD_XLSX_REPORT_CMD) { implicit msg =>
     withArgs { args =>
       val result = for {
-        _ <- logCmdInvocation(LOAD_XLSX_REPORT)
+        _ <- logCmdInvocation(LOAD_XLSX_REPORT_CMD)
         inputFile <- loadXlsxReport(args, msg)
+        _ <- request(SendDocument(msg.chat.id, inputFile, replyMarkup = defaultMarkup()))
+      } yield ()
+      handleError(result, msg)
+    }
+  }
+
+  onCommand(DUMP_CMD) { implicit msg =>
+    withArgs { args =>
+      val result = for {
+        _ <- logCmdInvocation(DUMP_CMD)
+        inputFile <- loadDump
         _ <- request(SendDocument(msg.chat.id, inputFile, replyMarkup = defaultMarkup()))
       } yield ()
       handleError(result, msg)
@@ -143,19 +154,25 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
     }
   }
 
-  private def loadXlsxReport(args: Seq[String], msg: Message): F[InputFile] = {
-    for {
-      _ <- argValidator.validateSeasonArgs(args)
-      season = if (args.isEmpty) QuarterCalculator.currentQuarter else args.head
-      byteArr <- cc.getStatsXlsxDocument(season)
-    } yield InputFile(s"$season-statistics.xlsx", byteArr)
-  }
-
   private def prepareFindShortStatsDto(args: Seq[String]): FindShortStats = {
     args match {
       case Seq(s) => FindShortStats(s)
       case _ => FindShortStats(QuarterCalculator.currentQuarter)
     }
+  }
+
+  private def loadXlsxReport(args: Seq[String], msg: Message): F[InputFile] = {
+    for {
+      _ <- argValidator.validateSeasonArgs(args)
+      season = if (args.isEmpty) QuarterCalculator.currentQuarter else args.head
+      file <- cc.getStatsXlsxDocument(season)
+    } yield InputFile(file.name, file.data)
+  }
+
+  private def loadDump(implicit msg: Message): F[InputFile] = {
+    for {
+      file <- cc.getDump
+    } yield InputFile(file.name, file.data)
   }
 
 }
