@@ -19,7 +19,7 @@ class UklConsumer[F[_] : ConcurrentEffect](bot: CommandsBot[F]) extends AppConfi
 
 
   def startListener(): Unit = {
-    val connection = RabbitConfigurer.connectionFactory.newConnection(Executors.newCachedThreadPool())
+    val connection = RabbitConfigurer.newConnection()
     val channel = connection.createChannel()
     channel.basicConsume(rabbitOutputChannel, consumer(channel))
   }

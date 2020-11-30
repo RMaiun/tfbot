@@ -6,7 +6,7 @@ import com.mairo.dtos.CataClientOutputDtos.{UklRequest, UklResponse}
 import com.mairo.utils.{AppConfig, CataClientSprayCodecs}
 
 class UklSender[F[_] : Sync](implicit MT: MonadError[F, Throwable]) extends AppConfig with CataClientSprayCodecs {
-  private val connection = RabbitConfigurer.connectionFactory.newConnection()
+  private val connection = RabbitConfigurer.newConnection()
   private val channel = connection.createChannel()
 
   def send(request: UklRequest): F[Unit] = {
