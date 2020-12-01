@@ -16,9 +16,10 @@ object Launcher extends IOApp with AppConfig {
 
   val cataClient: CataClient[IO] = new CataClient[IO]
   val argValidator: ArgValidator[IO] = new ArgValidator[IO]()
-  val sender = new UklSender[IO]
+  val rabitConfigurer: RabbitConfigurer[IO] = RabbitConfigurer.impl[IO]
+  val sender = new UklSender[IO](rabitConfigurer)
   val bot = new CommandsBot[IO](botToken, botVersion, argValidator, sender, cataClient)
-  val consumer = new UklConsumer[IO](bot)
+  val consumer = new UklConsumer[IO](bot, rabitConfigurer)
 
   def run(args: List[String]): IO[ExitCode] = {
     for {
@@ -29,7 +30,7 @@ object Launcher extends IOApp with AppConfig {
       _ <- Logger[IO].info(s"Found rabbit.user = $rabbitUser")
       _ <- Logger[IO].info(s"Found rabbit.pass = $rabbitPass")
       _ <- Logger[IO].info("TFBOT have started successfully")
-      _ <- Sync[IO].delay(consumer.startListener())
+      _ <- consumer.startListener()
       exitCode <- bot.startPolling().map(_ => ExitCode.Success)
     } yield exitCode
   }

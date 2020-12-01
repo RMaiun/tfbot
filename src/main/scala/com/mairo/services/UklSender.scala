@@ -5,23 +5,22 @@ import cats.effect.Sync
 import com.mairo.dtos.CataClientOutputDtos.{UklRequest, UklResponse}
 import com.mairo.utils.{AppConfig, CataClientSprayCodecs}
 
-class UklSender[F[_] : Sync](implicit MT: MonadError[F, Throwable]) extends AppConfig with CataClientSprayCodecs {
-  private val connection = RabbitConfigurer.newConnection()
-  private val channel = connection.createChannel()
+class UklSender[F[_] : Sync](rc: RabbitConfigurer[F])(implicit MT: MonadError[F, Throwable]) extends AppConfig with CataClientSprayCodecs {
+  private val connection = rc.newConnection()
+  private val channel = MT.flatMap(connection)(c => Sync[F].delay(c.createChannel()))
 
   def send(request: UklRequest): F[Unit] = {
-    val sendEffect = Sync[F].delay(
-      channel.basicPublish("", rabbitInputChannel, false, false,
-        null, uklRequestFormat.write(request).toString().getBytes)
-    )
-    MT.handleError(sendEffect)(err => Sync[F].delay(err.printStackTrace()))
+    sendInternal(rabbitInputChannel, uklRequestFormat.write(request).toString().getBytes)
   }
 
   def selfSend(re: UklResponse): F[Unit] = {
-    val sendEffect = Sync[F].delay(
-      channel.basicPublish("", rabbitOutputChannel, false, false,
-        null, uklResponseFormat.write(re).toString().getBytes)
-    )
+    sendInternal(rabbitOutputChannel, uklResponseFormat.write(re).toString().getBytes)
+  }
+
+  private def sendInternal(destination: String, bytes: Array[Byte]): F[Unit] = {
+    val sendEffect = MT.flatMap(channel)(c => Sync[F].delay(
+      c.basicPublish("", destination, false, false,
+        null, bytes)))
     MT.handleError(sendEffect)(err => Sync[F].delay(err.printStackTrace()))
   }
 }
