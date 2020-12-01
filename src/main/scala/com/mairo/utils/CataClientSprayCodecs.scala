@@ -11,7 +11,7 @@ trait CataClientSprayCodecs extends DefaultJsonProtocol {
   implicit val localDateTimeFormat: JsonFormat[LocalDateTime] = new JsonFormat[LocalDateTime] {
     private val iso_date_time = DateTimeFormatter.ISO_DATE_TIME
 
-    def write(x: LocalDateTime) = JsString(iso_date_time.format(x))
+    def write(x: LocalDateTime): JsValue = JsString(iso_date_time.format(x))
 
     def read(value: JsValue): LocalDateTime = value match {
       case JsString(x) => LocalDateTime.parse(x, iso_date_time)
@@ -45,4 +45,6 @@ trait CataClientSprayCodecs extends DefaultJsonProtocol {
 
   implicit val linkTidFormat: RootJsonFormat[LinkTidDto] = jsonFormat3(LinkTidDto)
   implicit val subscriptionActionFormat: RootJsonFormat[SubscriptionActionDto] = jsonFormat2(SubscriptionActionDto)
+
+  implicit val addPlayerFormat: RootJsonFormat[AddPlayerDto] = jsonFormat4(AddPlayerDto)
 }

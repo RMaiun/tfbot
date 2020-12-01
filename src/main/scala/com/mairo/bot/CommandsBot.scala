@@ -56,6 +56,18 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
     }
   }
 
+  onCommand(ADD_PLAYER_CMD) { implicit msg =>
+    withArgs { args =>
+      val result = for {
+        _ <- logCmdInvocation(ADD_PLAYER_CMD)
+        _ <- argValidator.validateAddPlayerArgs(args)
+        body <- MT.pure(addPlayerFormat.write(prepareAddPlayerDto(args, msg)))
+        _ <- uklSender.send(UklRequest("addPlayer", msg.messageId, msg.chat.id.toString, Some(body)))
+      } yield ()
+      handleError(result, msg)
+    }
+  }
+
   onCommand(LAST_CMD) { implicit msg =>
     withArgs { args =>
       val result = for {
@@ -93,14 +105,12 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
   }
 
   onCommand(SUBSCRIBE_CMD) { implicit msg =>
-    withArgs { args =>
-      val result = for {
-        _ <- logCmdInvocation(SUBSCRIBE_CMD)
-        body <- MT.pure(subscriptionActionFormat.write(SubscriptionActionDto(enableSubscriptions = true, msg.from.fold("0")(_.id.toString))))
-        _ <- uklSender.send(UklRequest("subscribe", msg.messageId, msg.chat.id.toString, Some(body)))
-      } yield ()
-      handleError(result, msg)
-    }
+    val result = for {
+      _ <- logCmdInvocation(SUBSCRIBE_CMD)
+      body <- MT.pure(subscriptionActionFormat.write(SubscriptionActionDto(enableSubscriptions = true, msg.from.fold("0")(_.id.toString))))
+      _ <- uklSender.send(UklRequest("subscribe", msg.messageId, msg.chat.id.toString, Some(body)))
+    } yield ()
+    handleError(result, msg)
   }
 
   onCommand(UNSUBSCRIBE_CMD) { implicit msg =>
@@ -126,14 +136,12 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
   }
 
   onCommand(DUMP_CMD) { implicit msg =>
-    withArgs { args =>
-      val result = for {
-        _ <- logCmdInvocation(DUMP_CMD)
-        inputFile <- loadDump
-        _ <- request(SendDocument(msg.chat.id, inputFile, replyMarkup = defaultMarkup()))
-      } yield ()
-      handleError(result, msg)
-    }
+    val result = for {
+      _ <- logCmdInvocation(DUMP_CMD)
+      inputFile <- loadDump
+      _ <- request(SendDocument(msg.chat.id, inputFile, replyMarkup = defaultMarkup()))
+    } yield ()
+    handleError(result, msg)
   }
 
   private def handleError(fa: F[Unit], msg: Message): F[Unit] = {
@@ -144,6 +152,12 @@ class CommandsBot[F[_] : Async : Timer : ContextShift : Monad : Logger](token: S
     val winners = args.head.split("/")
     val losers = args.tail.head.split("/")
     AddRoundDto(winners(0), winners(1), losers(0), losers(1), args.size == 3, msg.from.fold("0")(_.id.toString))
+  }
+
+  private def prepareAddPlayerDto(args: Seq[String], msg: Message): AddPlayerDto = {
+    val surname = args.head
+    val moderator = msg.from.fold("0")(_.id.toString)
+    AddPlayerDto(surname, moderator)
   }
 
   private def prepareLastRoundArgs(args: Seq[String]): FindLastRounds = {

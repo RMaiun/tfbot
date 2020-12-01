@@ -9,6 +9,8 @@ object CataClientIntputDtos {
                          shutout: Boolean,
                          moderator: String)
 
+  case class AddPlayerDto(surname: String, moderator: String, admin: Boolean = false, tid: Option[String] = None)
+
   case class FindLastRounds(season: String, qty: Int = 6)
 
   case class FindShortStats(season: String)

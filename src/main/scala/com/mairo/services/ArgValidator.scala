@@ -10,8 +10,16 @@ class ArgValidator[F[_]](implicit MT: MonadError[F, Throwable]) {
 
   def validateLinkTidArgs(args: Seq[String]): F[Seq[String]] = {
     args match {
-      case Seq(x, y) => MT.pure(args)
+      case Seq(_, _) => MT.pure(args)
       case _ => MT.raiseError(InvalidArgsNumberException())
+    }
+  }
+
+  def validateAddPlayerArgs(args: Seq[String]): F[Seq[String]] = {
+    if(args.size == 1){
+      MT.pure(args)
+    }else{
+      MT.raiseError(InvalidArgsNumberException())
     }
   }
 

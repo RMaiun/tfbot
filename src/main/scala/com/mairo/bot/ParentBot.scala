@@ -24,6 +24,7 @@ object ParentBot {
   val LAST_CMD = "/last"
   val STATS_CMD = "/stats"
   val ADD_ROUND_CMD = "/add"
+  val ADD_PLAYER_CMD = "/addPlayer"
   val LOAD_XLSX_REPORT_CMD = "/xlsxReport"
   val DUMP_CMD = "/dump"
   val LINK_CMD = "/link"
